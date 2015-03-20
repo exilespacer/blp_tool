@@ -35,7 +35,7 @@ class BLP(object):
 
 
 class BDP(BLP):
-    def getRequest(self, codes, fields, overrideFieldValueDict=None, *args, **kwargs):
+    def getRequest(self, codes=['2330 TT Equity'], fields=['PX_LAST'], overrideFieldValueDict=None, *args, **kwargs):
         if not overrideFieldValueDict:
             overrideFieldValueDict = dict()
         assert isinstance(codes, list), 'only "list" is allowed to "codes". '
@@ -69,7 +69,7 @@ class BDP(BLP):
 
 
 class BDH(BLP):
-    def getRequest(self, codes, fields, startdate, enddate, periodicity='DAILY', *args, **kwargs):
+    def getRequest(self, codes=['2330 TT Equity'], fields=['PX_LAST'], startdate='2005-01-01', enddate='2005-01-05', periodicity='DAILY', *args, **kwargs):
         assert isinstance(codes, list), 'only "list" is allowed to "codes". '
         assert isinstance(fields, list), 'only "list" is allowed to "fields".'
         assert isinstance(startdate, str), 'only "str" is allowed to "startdate". '
