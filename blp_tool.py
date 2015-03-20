@@ -106,6 +106,8 @@ bdp = BDP()
 bdh = BDH()
 
 if __name__ == '__main__':
+
+    ## example 1
     parameter1 = {
         'codes': ['2330 TT Equity', '2412 TT Equity'],
         'fields': ['FUNDAMENTAL_DATABASE_DATE', 'PX_LAST', 'PE_RATIO'],
@@ -115,15 +117,23 @@ if __name__ == '__main__':
         }
     }
     dataGenerator = bdp(**parameter1)
+    for data in dataGenerator:
+        print data
+    print('--------------------------------')
 
+    ## example 2
     parameter2 = {
         'codes': ['2330 TT Equity', '2412 TT Equity'],
         'fields':  ['PX_LAST', 'PX_OPEN', 'PE_RATIO', 'VOLUME'],
         'overrideFieldValueDict': {}
     }
-    # dataGenerator = bdp(**parameter2)
+    dataGenerator = bdp(**parameter2)
+    for data in dataGenerator:
+        print data
+    print('--------------------------------')
 
 
+    ## example 3
     parameter3 = {
         'codes': ['2330 TT Equity', '2412 TT Equity'],
         'fields': ['PX_LAST'],
@@ -131,8 +141,9 @@ if __name__ == '__main__':
         'enddate': '2014-01-09',
         'periodicity': 'DAILY'
     }
-    # dataGenerator = bdh(**parameter3)
+    dataGenerator = bdh(**parameter3)
     for data in dataGenerator:
         print data
+    print('--------------------------------')
 
 
