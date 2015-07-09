@@ -1,6 +1,6 @@
 __author__ = 'yen'
-
 import blpapi
+
 
 class BLP(object):
     def __init__(self):
@@ -15,13 +15,15 @@ class BLP(object):
 
     def getRequest(self, **kwargs):
         '''You need to customize your own request generator here.'''
-        pass
+        return None
 
     def getResponseData(self, request):
         self._session.sendRequest(request)
         while True:
             event = self._session.nextEvent()
             for msg in event:
+                if msg.hasElement('data'):
+                    msg = msg.getElement('data')
                 if not msg.hasElement('securityData'):
                     continue
                 for fieldData in self.getFieldData(msg):
@@ -31,7 +33,7 @@ class BLP(object):
 
     def getFieldData(self, msg):
         '''You need to customize your own parser here.'''
-        pass
+        return []
 
 
 class BDP(BLP):
@@ -100,50 +102,87 @@ class BDH(BLP):
         return fieldData
 
 
+class BEQS(BLP):
+    def getRequest(self, screen_name, screenType='PRIVATE', overrideFieldValueDict=None):
+        if not overrideFieldValueDict:
+            overrideFieldValueDict = dict()
+        assert isinstance(screen_name, str), 'only "str" is allowed to "screen_name". '
+        assert screenType in ['GLOBAL', 'PRIVATE'], 'only  ["GLOBAL", "PRIVATE"] is allowed to "screenType". '
+
+        request = self._refDataService.createRequest('BeqsRequest')
+        request.set('screenName', screen_name)
+        request.set('screenType', screenType)
+        for key, value in overrideFieldValueDict.items():
+            override = request.getElement('overrides').appendElement()
+            override.setElement('fieldId', key)
+            override.setElement('value', value)
+        return request
+
+    def getFieldData(self, msg):
+        #todo: check AsOf data structure
+        securityDataNode = msg.getElement('securityData')
+        code = securityDataNode.getElementValue('security')
+        fieldNodes = securityDataNode.getElement('fieldData')
+        for i in range(fieldNodes.numValues()):
+            fieldNode = fieldNodes.getValue(i)
+            fieldData = self.fieldNodeParser(fieldNode)
+            fieldData.update({'code': code})
+            yield fieldData
+
+    def fieldNodeParser(self, fieldNode):
+        fieldData = {str(fieldNode.getElement(i).name()): fieldNode.getElementValue(i) for i in range(fieldNode.numElements())}
+        return fieldData
 
 
 bdp = BDP()
 bdh = BDH()
+beqs = BEQS()
+
 
 if __name__ == '__main__':
-
-    ## example 1
-    parameter1 = {
-        'codes': ['2330 TT Equity', '2412 TT Equity'],
-        'fields': ['FUNDAMENTAL_DATABASE_DATE', 'PX_LAST', 'PE_RATIO'],
-        'overrideFieldValueDict': {
-            'EQY_FUND_YEAR': 2013,
-            'FUND_PER': 'Q1'
-        }
-    }
-    dataGenerator = bdp(**parameter1)
+    dataGenerator = beqs(screen_name='china_a_shares', overrideFieldValueDict={'AsOf': '20101231'})
     for data in dataGenerator:
         print data
-    print('--------------------------------')
 
-    ## example 2
-    parameter2 = {
-        'codes': ['2330 TT Equity', '2412 TT Equity'],
-        'fields':  ['PX_LAST', 'PX_OPEN', 'PE_RATIO', 'VOLUME'],
-        'overrideFieldValueDict': {}
-    }
-    dataGenerator = bdp(**parameter2)
-    for data in dataGenerator:
-        print data
-    print('--------------------------------')
-
-
-    ## example 3
-    parameter3 = {
-        'codes': ['2330 TT Equity', '2412 TT Equity'],
-        'fields': ['PX_LAST'],
-        'startdate': '2014-01-01',
-        'enddate': '2014-01-09',
-        'periodicity': 'DAILY'
-    }
-    dataGenerator = bdh(**parameter3)
-    for data in dataGenerator:
-        print data
-    print('--------------------------------')
+    #
+    # ## example 1
+    # parameter1 = {
+    #     'codes': ['2330 TT Equity', '2412 TT Equity'],
+    #     'fields': ['FUNDAMENTAL_DATABASE_DATE', 'PX_LAST', 'PE_RATIO'],
+    #     'overrideFieldValueDict': {
+    #         'EQY_FUND_YEAR': 2013,
+    #         'FUND_PER': 'Q1'
+    #     }
+    # }
+    # dataGenerator = bdp(**parameter1)
+    # for data in dataGenerator:
+    #     print data
+    # print('--------------------------------')
+    #
+    # ## example 2
+    # parameter2 = {
+    #     'codes': ['2330 TT Equity', '2412 TT Equity'],
+    #     'fields':  ['PX_LAST', 'PX_OPEN', 'PE_RATIO', 'VOLUME'],
+    #     'overrideFieldValueDict': {}
+    # }
+    # dataGenerator = bdp(**parameter2)
+    # for data in dataGenerator:
+    #     print data
+    # print('--------------------------------')
+    #
+    #
+    # ## example 3
+    # parameter3 = {
+    #     'codes': ['2330 TT Equity', '2412 TT Equity'],
+    #     'fields': ['PX_LAST'],
+    #     'startdate': '2014-01-01',
+    #     'enddate': '2014-01-09',
+    #     'periodicity': 'DAILY'
+    # }
+    # dataGenerator = bdh(**parameter3)
+    # for data in dataGenerator:
+    #     print data
+    # print('--------------------------------')
+    #
 
 
