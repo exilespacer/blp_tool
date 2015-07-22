@@ -150,7 +150,7 @@ if __name__ == '__main__':
     for data in dataGenerator:
         print data
     print('--------------------------------')
-
+    
     ## example 2
     parameter2 = {
         'codes': ['2330 TT Equity', '2412 TT Equity'],
@@ -187,6 +187,3 @@ if __name__ == '__main__':
     for data in dataGenerator:
         print data
     print('--------------------------------')
-
-
-
